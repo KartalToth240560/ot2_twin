@@ -20,14 +20,20 @@ from clearml import Task
 
 task = Task.init(project_name='Mentor Group - Uther/Group 1', # NB: Replace YourName with your own name
                     task_name='Experiment1')
-# Force these specific packages to be installed on the remote agent
+
+# Force these specific package versions to match your working local environment
 task.set_packages([
-    "numpy<2.0",          # Fixes the bool8 error
-    "wandb",              # Fixes the ModuleNotFoundError
-    "gymnasium",
-    "stable_baselines3",
-    "shimmy",             # If SB3 needs it for compatibility
-    "tensorboard"
+    "numpy==2.2.6",             # Fixes the version conflict (2.3.5 was too new for Py3.10)
+    "gymnasium==1.2.2",
+    "stable-baselines3==2.7.0",
+    "wandb==0.23.1",
+    "pybullet==3.2.5",
+    "tensorboard==2.20.0",
+    "pandas==2.2.3",
+    "matplotlib==3.10.7",
+    "clearml==2.0.2",
+    "scikit-learn==1.5.2",
+    "scipy==1.16.3"
 ])
 #copy these lines exactly as they are
 #setting the base docker image
