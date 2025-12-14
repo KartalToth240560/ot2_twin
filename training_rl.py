@@ -20,7 +20,15 @@ from clearml import Task
 
 task = Task.init(project_name='Mentor Group - Uther/Group 1', # NB: Replace YourName with your own name
                     task_name='Experiment1')
-task.set_packages({"numpy": "2.2.6"})
+# Force these specific packages to be installed on the remote agent
+task.set_packages([
+    "numpy<2.0",          # Fixes the bool8 error
+    "wandb",              # Fixes the ModuleNotFoundError
+    "gymnasium",
+    "stable_baselines3",
+    "shimmy",             # If SB3 needs it for compatibility
+    "tensorboard"
+])
 #copy these lines exactly as they are
 #setting the base docker image
 task.set_base_docker('deanis/2023y2b-rl:latest')
