@@ -7,6 +7,44 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import wandb
 import gymnasium as gym
 
+
+from stable_baselines3.common.callbacks import CheckpointCallback, BaseCallback, CallbackList
+# 1. Custom Checkpoint Callback that uploads to ClearML
+class ClearMLCheckpointCallback(CheckpointCallback):
+    def _on_step(self) -> bool:
+        # Call the parent class to save the model locally
+        result = super()._on_step()
+        
+        # If a save happened in this step, upload it to ClearML
+        if self.n_calls % self.save_freq == 0:
+            # Reconstruct the path exactly as SB3 does
+            path = os.path.join(self.save_path, f"{self.name_prefix}_{self.num_timesteps}_steps.zip")
+            if os.path.exists(path):
+                print(f"Uploading Checkpoint: {path}")
+                # Use Task.current_task() to get the active task on the remote worker
+                Task.current_task().upload_artifact(
+                    name=f"checkpoint_{self.num_timesteps}", 
+                    artifact_object=path
+                )
+        return result
+
+# 2. Callback to upload the "Best Model" found by EvalCallback
+class ClearMLBestModelCallback(BaseCallback):
+    def __init__(self, save_path: str, verbose=0):
+        super().__init__(verbose)
+        self.save_path = save_path
+        
+    def _on_step(self) -> bool:
+        # This is triggered ONLY when a new best model is found
+        path = os.path.join(self.save_path, "best_model.zip")
+        if os.path.exists(path):
+            print(f"Uploading New Best Model: {path}")
+            Task.current_task().upload_artifact(
+                name="best_model", 
+                artifact_object=path
+            )
+        return True
+
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import EvalCallback, StopTrainingOnRewardThreshold, CheckpointCallback
 from stable_baselines3.common.env_util import make_vec_env
@@ -99,32 +137,42 @@ if __name__ == "__main__":
 
     # --- CALLBACK SETUP ---
     save_freq = int(args.total_timesteps / 10)
+    
+    # Define paths
+    best_model_path = f"models/{run.id}/best_model"
+    checkpoint_path = f"models/{run.id}/checkpoints"
 
-    # 1. Stop Training on Reward Threshold
+    # 1. Stop Training Logic
     stop_train_callback = StopTrainingOnRewardThreshold(
         reward_threshold=-0.001, 
         verbose=1
     )
 
-    # 2. Eval Callback
+    # 2. ClearML Upload Logic for Best Model
+    upload_best_callback = ClearMLBestModelCallback(save_path=best_model_path)
+
+    # Combine them: When a new best model is found, check if we should stop AND upload the file
+    callback_on_best = CallbackList([stop_train_callback, upload_best_callback])
+
+    # 3. Eval Callback (Updated)
     eval_callback = EvalCallback(
         eval_env, 
-        callback_on_new_best=stop_train_callback, 
+        callback_on_new_best=callback_on_best,  # <--- Use the combined list here
         eval_freq=2048, 
-        best_model_save_path=f"models/{run.id}/best_model", 
+        best_model_save_path=best_model_path, 
         log_path=f"runs/{run.id}", 
         deterministic=True, 
         render=False
     )
 
-    # 3. Checkpoint Callback
-    checkpoint_callback = CheckpointCallback(
+    # 4. Checkpoint Callback (Updated to custom class)
+    checkpoint_callback = ClearMLCheckpointCallback(  # <--- Use Custom Class
         save_freq=save_freq,
-        save_path=f"models/{run.id}/checkpoints",
+        save_path=checkpoint_path,
         name_prefix="rl_model"
     )
 
-    # 4. Wandb Callback
+    # 5. Wandb Callback (Remains the same)
     wandb_callback = WandbCallback(
         model_save_freq=save_freq,
         model_save_path=f"models/{run.id}",
