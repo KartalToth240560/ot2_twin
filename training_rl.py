@@ -21,20 +21,21 @@ from clearml import Task
 task = Task.init(project_name='Mentor Group - Uther/Group 1', # NB: Replace YourName with your own name
                     task_name='Experiment1')
 
-# Force these specific package versions to match your working local environment
+
+# Force these specific package versions
 task.set_packages([
-    "numpy==2.2.6", 
+    "numpy<2.0",                # <--- CRITICAL FIX: Downgrade to 1.x to fix binary incompatibility
     "gymnasium==1.2.2",
     "stable-baselines3==2.7.0",
-    "wandb",
-    "pybullet",
-    "tensorboard",
+    "wandb==0.23.1",
+    "pybullet==3.2.5",
+    "tensorboard==2.20.0",
     "pandas",
     "matplotlib",
-    "clearml",
+    "clearml==2.0.2",
     "scikit-learn",
     "scipy",
-    "shimmy>=0.2.1"  # SB3 usually needs this for Gymnasium compatibility
+    "shimmy>=0.2.1" 
 ])
 #copy these lines exactly as they are
 #setting the base docker image
