@@ -20,7 +20,7 @@ from clearml import Task
 
 task = Task.init(project_name='Mentor Group - Uther/Group 1', # NB: Replace YourName with your own name
                     task_name='Experiment1')
-
+task.set_packages({"numpy": "2.2.6"})
 #copy these lines exactly as they are
 #setting the base docker image
 task.set_base_docker('deanis/2023y2b-rl:latest')
