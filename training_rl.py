@@ -41,7 +41,7 @@ task.set_packages([
 #setting the base docker image
 task.set_base_docker('deanis/2023y2b-rl:latest')
 #setting the task to run remotely on the default queue
-task.execute_remotely(queue_name="default")
+
 
 
 # --- ARGUMENT PARSING ---
@@ -52,11 +52,18 @@ parser.add_argument("--n_steps", type=int, default=2048)
 parser.add_argument("--n_epochs", type=int, default=10)
 parser.add_argument("--total_timesteps", type=int, default=1000)
 
+args = parser.parse_args()
 
-    
+
+task.connect(args) 
+
+# --- EXECUTE REMOTELY ---
+# Now ClearML knows the args are 3,000,000 before it sends the task away
+task.execute_remotely(queue_name="default")
+
 # PROTECT THE ENTRY POINT (Required for Windows Multiprocessing)
 if __name__ == "__main__":
-    args = parser.parse_args()
+    
 
     # --- ENVIRONMENT SETUP ---
     # make_vec_env automatically adds the 'Monitor' wrapper for you!
