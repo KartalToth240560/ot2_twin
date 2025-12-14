@@ -23,17 +23,18 @@ task = Task.init(project_name='Mentor Group - Uther/Group 1', # NB: Replace Your
 
 # Force these specific package versions to match your working local environment
 task.set_packages([
-    "numpy==2.2.6",             # Fixes the version conflict (2.3.5 was too new for Py3.10)
+    "numpy==2.2.6", 
     "gymnasium==1.2.2",
     "stable-baselines3==2.7.0",
-    "wandb==0.23.1",
-    "pybullet==3.2.5",
-    "tensorboard==2.20.0",
-    "pandas==2.2.3",
-    "matplotlib==3.10.7",
-    "clearml==2.0.2",
-    "scikit-learn==1.5.2",
-    "scipy==1.16.3"
+    "wandb",
+    "pybullet",
+    "tensorboard",
+    "pandas",
+    "matplotlib",
+    "clearml",
+    "scikit-learn",
+    "scipy",
+    "shimmy>=0.2.1"  # SB3 usually needs this for Gymnasium compatibility
 ])
 #copy these lines exactly as they are
 #setting the base docker image
