@@ -1,0 +1,4 @@
+*.zip
+*.0
+/wandb
+/runs

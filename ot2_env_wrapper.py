@@ -19,7 +19,7 @@ class OT2Env(gym.Env):
         self.max_steps = max_steps
 
         # Create the simulation environment
-        self.sim = Simulation(num_agents=1)
+        self.sim = Simulation(num_agents=1, render=self.render)
 
         # Define action and observation space
         # They must be gym.spaces objects
@@ -50,7 +50,9 @@ class OT2Env(gym.Env):
         # Reset the number of steps
         self.steps = 0
 
-        return observation
+        info = {}
+        
+        return observation, info
     def get_observation(self, sim_states):
         """
         Extract pipette position and joint velocities from the sim state.
@@ -95,7 +97,7 @@ class OT2Env(gym.Env):
         # Calculate the reward, this is something that you will need to experiment with to get the best results
         dist = np.linalg.norm(observation[0:3] - observation[3:6])
         
-        reward = -dist
+        reward = float(-dist)
         
         # next we need to check if the if the task has been completed and if the episode should be terminated
         # To do this we need to calculate the distance between the pipette position and the goal position and if it is below a certain threshold, we will consider the task complete. 
@@ -106,7 +108,7 @@ class OT2Env(gym.Env):
         is_stopped = all(abs(v) < VEL_THRESHOLD for v in [vel_x, vel_y, vel_z])
 
         if is_stopped:
-            terminated = dist < DIST_THRESHOLD
+            terminated = bool(dist < DIST_THRESHOLD)
         else:
             terminated = False
         truncated = self.steps >= self.max_steps

@@ -2,6 +2,12 @@ from ot2_env_wrapper import OT2Env
 import numpy as np
 
 env = OT2Env(render=True)
+from stable_baselines3.common.env_checker import check_env
+
+
+# It will raise an error or warning if your environment is not compatible
+check_env(env)
+print("Environment check successful!")
 
 obs = env.reset()
 print("Initial observation:", obs)
