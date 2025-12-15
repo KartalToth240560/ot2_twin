@@ -3,7 +3,7 @@ import time
 import itertools
 from task10_robotics_environment.pid import PIDController
 from sim_class import Simulation
-from utils import *
+from pid_utils import *
 
 # ==========================================
 # 1. TUNING CONFIGURATION

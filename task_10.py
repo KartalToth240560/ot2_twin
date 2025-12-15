@@ -3,7 +3,7 @@ import time
 import matplotlib.pyplot as plt
 from task10_robotics_environment.pid import PIDController
 from sim_class import Simulation
-from utils import * # Assuming your helper functions are here, or defined below
+from pid_utils import * # Assuming your helper functions are here, or defined below
 
 # ==========================================
 # 1. CONFIGURATION
