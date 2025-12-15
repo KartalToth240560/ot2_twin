@@ -2,6 +2,8 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import os
+from skimage.morphology import skeletonize
+
 
 def segment_and_identify_roots(mask, n_sections=5, y_threshold_start=0.1, y_threshold_end=0.2):
     """
@@ -149,32 +151,38 @@ def get_bottom(predicted_mask, preprocess_info):
         # Crop to the specific root component
         cropped_root, crop_info = crop_to_root(mask_for_label, mask_for_label, label_id, stats, padding=10)
         
-        # Check if the crop actually contains data (intersection might be empty)
-        if np.count_nonzero(cropped_root) > 0:
-            # Find all non-zero pixels
-            rows, cols = np.where(cropped_root > 0)
-            
-            # The lowest point is the maximum row index
-            max_y_in_crop = np.max(rows)
-            
-            # Calculate absolute coordinates
-            # 1. Add crop offset (top) to get coordinate in the 'predicted_mask'
-            y_in_mask = max_y_in_crop + crop_info['top']
-            
-            # 2. Add preprocess crop offset to get coordinate in the original image file
-            y_absolute = y_in_mask + preprocess_info.crop_y
-            
-            root_bottoms[section_idx] = y_absolute
-            
-           
-        else:
-            print(f"Section {section_idx}: Root detected in closing but empty in raw prediction.")
-            root_bottoms[section_idx] = None
+        kernel_close = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 20))
+        closed = cv2.morphologyEx(cropped_root, cv2.MORPH_CLOSE, kernel_close, iterations=1)
+        
+        
+        
+        skeleton = skeletonize(closed)
 
-    
+        points = np.argwhere(skeleton > 0)
+
+        if len(points) == 0:
+            lowest_point_local = None
+        else:
+            lowest_point_local = points[np.argmax(points[:, 0])]
+            local_y, local_x = lowest_point_local
+            
+            mask_y = local_y + crop_info['top']
+            mask_x = local_x + crop_info['left']
+
+            abs_y = mask_y + preprocess_info.crop_y
+            abs_x = mask_x + preprocess_info.crop_x
+            # Store as (x, y) for plotting, or (y, x) depending on your preference. 
+            # Standard for plotting (plt.scatter) is (x, y). Standard for array indexing is (y, x).
+            # Here I return (x, y) which is easier for plotting later.
+            root_bottoms[section_idx] = (mask_x, mask_y)
+            
+            
+            
+            
+        
         
     
-    print(f"Root Bottoms (Absolute Y): {root_bottoms}")
+    
 
     
 

@@ -4,9 +4,11 @@ import numpy as np
 import pybullet as p
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from stable_baselines3 import PPO
 from tensorflow.keras.models import load_model
 
 # --- Custom Modules ---
+from ot2_env_wrapper import OT2Env
 from sim_class import Simulation
 from task_5.inference_single import inference
 from task_5.models.simple_unet import f1
@@ -22,11 +24,15 @@ PID_GAINS = {
     'z': {'kp': 25.0, 'ki': 0.005, 'kd': 0.1},
 }
 
+MODEL_PATH = "./best_model.zip" 
+
 SIM_TIMESTEP = 1.0 / 240.0
 SPEED_LIMIT = 3.0
-POS_THRESHOLD = 0.001
+POS_THRESHOLD = 0.005
 VEL_THRESHOLD = 0.01 
 STEADY_FRAMES = 10 
+
+MAX_STEPS = 100000 
 
 # --- ROBOT CALIBRATION ---
 PLATE_X = 0.10775
@@ -64,10 +70,16 @@ if __name__ == "__main__":
     model_path = f'../deliverables/kartaltoth_240560_unet_model_{patch_size}px.h5'
     model = load_model(model_path, custom_objects={"f1": f1})
     
-    sim = Simulation(num_agents=1, render=True)
-    image_path = sim.get_plate_image()
+    env = OT2Env(render=True, max_steps=MAX_STEPS)
+    image_path = env.sim.get_plate_image()
     
-    
+    print(f"Loading model from: {MODEL_PATH}")
+    try:
+        rl_model = PPO.load(MODEL_PATH)
+    except FileNotFoundError:
+        print("❌ Model file not found! Please check MODEL_PATH.")
+        
+    obs, _ = env.reset()
     print(f"\n[INFO] Processing image: {image_path}")
     
     # Run Inference
@@ -141,43 +153,39 @@ if __name__ == "__main__":
     # --- PHASE 3: SIMULATION LOOP ---
     print("\n[INFO] Starting Simulation...")
     
-    robotId = sim.robotIds[0]
+    robotId = env.sim.robotIds[0]
     p.setTimeStep(SIM_TIMESTEP)
 
-    pids = {
-        'x': PIDController(**PID_GAINS['x'], output_limits=(-SPEED_LIMIT, SPEED_LIMIT)),
-        'y': PIDController(**PID_GAINS['y'], output_limits=(-SPEED_LIMIT, SPEED_LIMIT)),
-        'z': PIDController(**PID_GAINS['z'], output_limits=(-SPEED_LIMIT, SPEED_LIMIT)),
-    }
+    
 
     current_target_idx = 0
     state = "MOVING"
     steady_counter = 0
     wait_counter = 0
-    MAX_STEPS = 100000 
+    
 
     for step in range(MAX_STEPS):
-        
+        action, _states = rl_model.predict(obs, deterministic=True)
+        obs, reward, terminated, truncated, info = env.step(action)
         s_x = p.getJointState(robotId, 0)
         s_y = p.getJointState(robotId, 1)
         s_z = p.getJointState(robotId, 2)
         
         if current_target_idx < len(targets_queue):
             target_pos = targets_queue[current_target_idx]
+            env.goal_position = target_pos
         else:
             target_pos = None
             if state != "FINISHED": state = "WAITING"
 
         action = [0, 0, 0, 0]
-
+        
         if state == "MOVING":
-            t_joints = calculate_joint_targets(robotId, target_pos, sim.pipette_offset)
-            vx = pids['x'].update(t_joints[0], s_x[0], dt=SIM_TIMESTEP)
-            vy = pids['y'].update(t_joints[1], s_y[0], dt=SIM_TIMESTEP)
-            vz = pids['z'].update(t_joints[2], s_z[0], dt=SIM_TIMESTEP)
-            action = [-vx, -vy, vz, 0]
+            t_joints = calculate_joint_targets(robotId, target_pos, env.sim.pipette_offset)
             
-            curr_pos = convert_joint_to_pipette_position(robotId, [s_x[0], s_y[0], s_z[0]], sim.pipette_offset)
+            
+            
+            curr_pos = convert_joint_to_pipette_position(robotId, [s_x[0], s_y[0], s_z[0]], env.sim.pipette_offset)
             dist = np.linalg.norm(np.array(target_pos) - np.array(curr_pos))
             velocities = [s_x[1], s_y[1], s_z[1]]
             
@@ -201,7 +209,7 @@ if __name__ == "__main__":
             wait_counter += 1
             if current_target_idx < len(targets_queue) and wait_counter >= WAIT_STEPS:
                 current_target_idx += 1
-                pids['x'].reset(); pids['y'].reset(); pids['z'].reset()
+                
                 state = "MOVING"
             
             if current_target_idx >= len(targets_queue) and wait_counter >= WAIT_STEPS:
@@ -211,7 +219,7 @@ if __name__ == "__main__":
             if step % 240 == 0: 
                 print("[INFO] All drops completed.")
 
-        sim.run([action], num_steps=1)
+        env.sim.run([action], num_steps=1)
 
     print("Simulation finished.")
-    sim.close()
+    env.close()

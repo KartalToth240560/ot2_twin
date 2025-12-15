@@ -9,7 +9,7 @@ from ot2_env_wrapper import OT2Env
 # ==========================================
 # 1. CONFIGURATION
 # ==========================================
-MODEL_PATH = "./best_model.zip"  # <--- UPDATE THIS
+MODEL_PATH = "./best_model.zip" 
 START_POS = [-0.150, -0.150, 0.250] 
 TARGET_POS = [ 0.200,  0.150, 0.170]
 
