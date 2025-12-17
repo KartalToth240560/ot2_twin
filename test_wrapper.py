@@ -1,4 +1,4 @@
-from ot2_env_wrapper import OT2Env
+from ot2_gym_wrapper import OT2Env
 import numpy as np
 
 env = OT2Env(render=True)

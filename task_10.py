@@ -9,9 +9,9 @@ from pid_utils import * # Assuming your helper functions are here, or defined be
 # 1. CONFIGURATION
 # ==========================================
 PID_GAINS = {
-    'x': {'kp': 25.0, 'ki': 0.005, 'kd': 0.5},
-    'y': {'kp': 25.0, 'ki': 0.005, 'kd': 0.5},
-    'z': {'kp': 25.0, 'ki': 0.005, 'kd': 0.1},
+    'x': {'kp': 25.0, 'ki': 0.3, 'kd': 0.4},
+    'y': {'kp': 25.0, 'ki': 0.3, 'kd': 0.4},
+    'z': {'kp': 25.0, 'ki': 0.000, 'kd': 0.1},
 }
 
 # Simulation Constants
@@ -144,7 +144,7 @@ def plot_results(h):
     # --- X AXIS PLOT ---
     axs[0].plot(h['time'], h['target_x'], 'b-', label='Target', linewidth=2)
     axs[0].plot(h['time'], h['actual_x'], 'r-', label='Actual', linewidth=2)
-    axs[0].set_title(f"X Axis Response (Kp={PID_GAINS['x']['kp']})")
+    axs[0].set_title(f"X Axis Response (Kp={PID_GAINS['x']['kp']}, Ki={PID_GAINS['x']['ki']}, Kd ={PID_GAINS['x']['kd']})")
     axs[0].set_xlabel("Sim Time (s)")
     axs[0].set_ylabel("Position (m)")
     axs[0].grid(True, linestyle='--', alpha=0.7)
@@ -153,7 +153,7 @@ def plot_results(h):
     # --- Y AXIS PLOT ---
     axs[1].plot(h['time'], h['target_y'], 'b-', label='Target', linewidth=2)
     axs[1].plot(h['time'], h['actual_y'], 'r-', label='Actual', linewidth=2)
-    axs[1].set_title(f"Y Axis Response (Kp={PID_GAINS['y']['kp']})")
+    axs[1].set_title(f"Y Axis Response (Kp={PID_GAINS['y']['kp']}, Ki={PID_GAINS['y']['ki']}, Kd ={PID_GAINS['y']['kd']})")
     axs[1].set_xlabel("Sim Time (s)")
     axs[1].grid(True, linestyle='--', alpha=0.7)
     axs[1].legend()
@@ -161,7 +161,7 @@ def plot_results(h):
     # --- Z AXIS PLOT ---
     axs[2].plot(h['time'], h['target_z'], 'b-', label='Target', linewidth=2)
     axs[2].plot(h['time'], h['actual_z'], 'r-', label='Actual', linewidth=2)
-    axs[2].set_title(f"Z Axis Response (Kp={PID_GAINS['z']['kp']})")
+    axs[2].set_title(f"Z Axis Response (Kp={PID_GAINS['z']['kp']}, Ki={PID_GAINS['z']['ki']}, Kd ={PID_GAINS['z']['kd']})")
     axs[2].set_xlabel("Sim Time (s)")
     axs[2].grid(True, linestyle='--', alpha=0.7)
     axs[2].legend()

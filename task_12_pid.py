@@ -11,7 +11,7 @@ from sim_class import Simulation
 from task_5.inference_single import inference
 from task_5.models.simple_unet import f1
 from bottom_positons import get_bottom
-from task10_robotics_environment.pid import PIDController
+from task10_pid_controller.pid import PIDController
 
 # ==========================================
 # 1. CONFIGURATION

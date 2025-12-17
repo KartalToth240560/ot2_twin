@@ -1,10 +1,12 @@
+# rl test task_11.py
+
 import time
 import numpy as np
 import matplotlib.pyplot as plt
 from stable_baselines3 import PPO
 
 # Import your environment
-from ot2_env_wrapper import OT2Env 
+from ot2_gym_wrapper import OT2Env 
 
 # ==========================================
 # 1. CONFIGURATION
@@ -17,7 +19,7 @@ SIM_TIMESTEP = 1.0 / 240.0
 MAX_STEPS = 1000
 
 # Constants for the stop condition
-POS_THRESHOLD = 0.001   # 1mm
+POS_THRESHOLD = 0.002   # 1mm
 VEL_THRESHOLD = 0.01    # Rad/s
 
 # ==========================================
@@ -55,7 +57,7 @@ def run_ppo_test():
     
     print("Starting PPO Inference...")
     current_time = 0.0
-    
+    time.sleep(5)
     for i in range(MAX_STEPS):
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, terminated, truncated, info = env.step(action)
@@ -105,6 +107,7 @@ def run_ppo_test():
             print(f"⚠️ Episode timed out at step {i}")
             break
     print(dist)
+    time.sleep(2)
     env.close()
     
     # Save the plot to file
@@ -167,4 +170,6 @@ def save_results(h):
     print(f"📊 Plot saved to {filename}")
 
 if __name__ == "__main__":
+    
     run_ppo_test()
+    

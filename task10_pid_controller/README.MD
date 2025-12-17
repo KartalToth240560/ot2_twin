@@ -74,6 +74,16 @@ PID_GAINS = {
 }
 ```
 
+![PID](pid_telegramy_1.png)
+
+
+#### Other PID gains
+
+![PID](pid_telegramy_2.png)
+![PID](pid_telegramy_3.png)
+![PID](pid_telegramy_4.png)
+![PID](pid_telegramy_5.png)
+
 ### Gain Analysis
 - **Kp (Proportional)**: High value (25.0) provides strong response to position errors
 - **Ki (Integral)**: Small value (0.005) eliminates steady-state error without causing overshoot

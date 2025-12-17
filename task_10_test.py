@@ -8,9 +8,9 @@ from sim_class import Simulation
 # 1. USER CONFIGURATION (Your Tuned Gains)
 # ==========================================
 PID_GAINS = {
-    'x': {'kp': 25.0, 'ki': 0.005, 'kd': 0.5},
-    'y': {'kp': 25.0, 'ki': 0.005, 'kd': 0.5},
-    'z': {'kp': 25.0, 'ki': 0.005, 'kd': 0.1},
+    'x': {'kp': 25.0, 'ki': 0.3, 'kd': 0.4},
+    'y': {'kp': 25.0, 'ki': 0.3, 'kd': 0.4},
+    'z': {'kp': 25.0, 'ki': 0.000, 'kd': 0.1},
 }
 
 # Simulation Constants
