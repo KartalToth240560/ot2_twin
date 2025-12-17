@@ -15,7 +15,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from wandb.integration.sb3 import WandbCallback
 
 # Import your custom environment class
-from ot2_env_wrapper import OT2Env
+from ot2_gym_wrapper import OT2Env
 
 from clearml import Task
 
