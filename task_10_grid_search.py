@@ -1,7 +1,7 @@
 import pybullet as p
 import time
 import itertools
-from task10_robotics_environment.pid import PIDController
+from task10_pid_controller.pid import PIDController
 from sim_class import Simulation
 from pid_utils import *
 

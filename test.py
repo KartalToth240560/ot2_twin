@@ -12,7 +12,7 @@ print("Environment check successful!")
 obs = env.reset()
 print("Initial observation:", obs)
 
-for step in range(10):
+for step in range(1000):
     action = env.action_space.sample()  # random action
     obs, reward, terminated, truncated, info = env.step(action)
 

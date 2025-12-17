@@ -1,7 +1,7 @@
 import pybullet as p
 import time
 import random
-from task10_robotics_environment.pid import PIDController
+from task10_pid_controller.pid import PIDController
 from sim_class import Simulation
 
 # ==========================================
@@ -26,7 +26,7 @@ TIMEOUT = 5.0           # Max seconds to try reaching a point
 X_LIMITS = [-0.1870, 0.2530]
 Y_LIMITS = [-0.1705, 0.2195]
 Z_LIMITS = [0.1195, 0.2895]
-MARGIN = 0.01 # 1cm safety buffer from walls
+MARGIN = 0.05 # 5cm safety buffer from walls
 
 
 
