@@ -17,7 +17,7 @@ from task10_pid_controller.pid import PIDController
 # 1. CONFIGURATION
 # ==========================================
 PID_GAINS = {
-    'x': {'kp': 25.0, 'ki': 0.005, 'kd': 0.5},
+    'x': {'kp': 25.0, 'ki':     0.005, 'kd': 0.5},
     'y': {'kp': 25.0, 'ki': 0.005, 'kd': 0.5},
     'z': {'kp': 25.0, 'ki': 0.005, 'kd': 0.1},
 }
@@ -118,25 +118,24 @@ if __name__ == "__main__":
         print("[WARN] No roots detected. Exiting.")
         exit()
 
-    # --- PHASE 2.5: VISUALIZATION (ONCE) ---
     
 
 #[Image of Cartesian coordinate system]
 
     print("\n[INFO] Displaying Targets. Close window to start simulation...")
     original_img = mpimg.imread(image_path)
-    plt.figure(figsize=(10, 10))
-    plt.imshow(original_img[preprocess_info.crop_y: preprocess_info.crop_y+preprocess_info.crop_size,
-                            preprocess_info.crop_x: preprocess_info.crop_x+preprocess_info.crop_size], cmap='gray')
+    # plt.figure(figsize=(10, 10))
+    # plt.imshow(original_img[preprocess_info.crop_y: preprocess_info.crop_y+preprocess_info.crop_size,
+    #                         preprocess_info.crop_x: preprocess_info.crop_x+preprocess_info.crop_size], cmap='gray')
     
-    if pixel_points:
-        # Zip creates lists of Xs and Ys from the (x,y) tuples
-        xs, ys = zip(*pixel_points)
-        plt.scatter(xs, ys, c='red', s=50, marker='x', label='Target Roots')
-        plt.legend()
+    # if pixel_points:
+    #     # Zip creates lists of Xs and Ys from the (x,y) tuples
+    #     xs, ys = zip(*pixel_points)
+    #     plt.scatter(xs, ys, c='red', s=50, marker='x', label='Target Roots')
+    #     plt.legend()
     
-    plt.title("Detected Roots (Close this window to continue)")
-    plt.show() # Code blocks here until you close the window
+    # plt.title("Detected Roots (Close this window to continue)")
+    # plt.show() # Code blocks here until you close the window
     
     # --- PHASE 3: SIMULATION LOOP ---
     print("\n[INFO] Starting Simulation...")

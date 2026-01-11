@@ -102,7 +102,7 @@ class OT2Env(gym.Env):
         reward = -dist
 
         # Sparse success bonus
-        GOAL_THRESHOLD = 0.001  # 1 mm
+        GOAL_THRESHOLD = 0.0005  # 0.5 mm
         SUCCESS_BONUS = 10.0
 
         if dist < GOAL_THRESHOLD:

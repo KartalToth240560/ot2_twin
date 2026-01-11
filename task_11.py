@@ -1,8 +1,7 @@
-# rl test task_11.py
-
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 from stable_baselines3 import PPO
 
 # Import your environment
@@ -11,15 +10,27 @@ from ot2_gym_wrapper import OT2Env
 # ==========================================
 # 1. CONFIGURATION
 # ==========================================
+X_LIMITS = [-0.1870, 0.2530]
+Y_LIMITS = [-0.1705, 0.2195]
+Z_LIMITS = [0.1195, 0.2895]
+MARGIN = 0.05 # 5cm safety buffer from walls
+
 MODEL_PATH = "./best_model.zip" 
 START_POS = [-0.150, -0.150, 0.250] 
-TARGET_POS = [ 0.200,  0.150, 0.170]
+# Initialize with a random target
+def get_random_target():
+    tx = random.uniform(X_LIMITS[0] + MARGIN, X_LIMITS[1] - MARGIN)
+    ty = random.uniform(Y_LIMITS[0] + MARGIN, Y_LIMITS[1] - MARGIN)
+    tz = random.uniform(Z_LIMITS[0] + MARGIN, Z_LIMITS[1] - MARGIN)
+    return [tx, ty, tz]
+
+TARGET_POS = get_random_target()
 
 SIM_TIMESTEP = 1.0 / 240.0
-MAX_STEPS = 1000
+MAX_STEPS = 2000 # Increased to allow for multiple targets
 
 # Constants for the stop condition
-POS_THRESHOLD = 0.002   # 1mm
+POS_THRESHOLD = 0.005   # 1mm
 VEL_THRESHOLD = 0.01    # Rad/s
 
 # ==========================================
@@ -45,6 +56,8 @@ def run_ppo_test():
         print("❌ Model file not found! Please check MODEL_PATH.")
         return
 
+    # Use global TARGET_POS for initial setup
+    global TARGET_POS
     obs = force_reset_environment(env, START_POS, TARGET_POS)
     
     # --- DATA STORAGE ---
@@ -55,70 +68,61 @@ def run_ppo_test():
         'target_z': [], 'actual_z': [], 'error_z': []
     }
     
-    print("Starting PPO Inference...")
+    print("Starting PPO Continuous Inference...")
     current_time = 0.0
     time.sleep(5)
+    
     for i in range(MAX_STEPS):
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, terminated, truncated, info = env.step(action)
         
-        # Extract Data from Observation
-        # obs structure: [px, py, pz, gx, gy, gz, vx, vy, vz]
         curr_pos = obs[0:3]
-        velocities = obs[6:9] # vx, vy, vz
+        velocities = obs[6:9] 
         
-        # Calculate Errors
+        # Calculate Errors based on current TARGET_POS
         err_x = TARGET_POS[0] - curr_pos[0]
         err_y = TARGET_POS[1] - curr_pos[1]
         err_z = TARGET_POS[2] - curr_pos[2]
         
-        # --- YOUR STOP LOGIC ---
-        # Calculate Euclidean distance to target
+        # --- CONTINUOUS SWITCHING LOGIC ---
         dist = sum([(t - c)**2 for t, c in zip(TARGET_POS, curr_pos)]) ** 0.5
-        
-        # Check if velocities are low enough
         is_stopped = all(abs(v) < VEL_THRESHOLD for v in velocities)
-        
-        # If position is close and robot is stopped, break immediately
+        print(dist)
         if dist < POS_THRESHOLD and is_stopped:
-            print(f"✅ Target reached at step {i} (Time: {current_time:.3f}s)")
-            break
-        # -----------------------
+            print(f"🎯 Target reached! Switching to new random point...")
+            TARGET_POS = get_random_target()
+            # Update the environment's internal goal
+            env.goal_position = np.array(TARGET_POS, dtype=np.float32)
+            # Manually update the goal part of the observation for the model
+            obs[3:6] = env.goal_position
+        # ----------------------------------
 
         # Log Data
         history['time'].append(current_time)
-        
         history['target_x'].append(TARGET_POS[0])
         history['actual_x'].append(curr_pos[0])
         history['error_x'].append(err_x)
-        
         history['target_y'].append(TARGET_POS[1])
         history['actual_y'].append(curr_pos[1])
         history['error_y'].append(err_y)
-        
         history['target_z'].append(TARGET_POS[2])
         history['actual_z'].append(curr_pos[2])
         history['error_z'].append(err_z)
         
         current_time += SIM_TIMESTEP
-        time.sleep(0.01) 
+        time.sleep(0.005) # Slightly faster for testing
         
-        if truncated:
-            print(f"⚠️ Episode timed out at step {i}")
+        if terminated or truncated:
+            print(f"⚠️ Episode ended at step {i}")
             break
-    print(dist)
-    time.sleep(2)
+
     env.close()
-    
-    # Save the plot to file
     save_results(history)
 
 def save_results(h):
-    # Create a 2x3 grid (2 Rows, 3 Columns)
     fig, axs = plt.subplots(2, 3, figsize=(15, 8))
-    fig.suptitle(f"PPO Step Response & Error Analysis", fontsize=16)
+    fig.suptitle(f"PPO Continuous Tracking & Error Analysis", fontsize=16)
 
-    # --- ROW 1: POSITION TRACKING ---
     # X Axis
     axs[0, 0].plot(h['time'], h['target_x'], 'b--', label='Target')
     axs[0, 0].plot(h['time'], h['actual_x'], 'r-', label='Actual')
@@ -139,10 +143,9 @@ def save_results(h):
     axs[0, 2].set_title("Z Position")
     axs[0, 2].grid(True, alpha=0.5)
 
-    # --- ROW 2: ERROR TRACKING ---
     # X Error
     axs[1, 0].plot(h['time'], h['error_x'], 'k-', label='Error')
-    axs[1, 0].axhline(0, color='g', linestyle='--', alpha=0.5) # Zero line
+    axs[1, 0].axhline(0, color='g', linestyle='--', alpha=0.5)
     axs[1, 0].set_title("X Error")
     axs[1, 0].set_xlabel("Time (s)")
     axs[1, 0].set_ylabel("Error (m)")
@@ -163,13 +166,9 @@ def save_results(h):
     axs[1, 2].grid(True, alpha=0.5)
 
     plt.tight_layout()
-    
-    # Save the figure
-    filename = "ppo_results.png"
+    filename = "ppo_continuous_results.png"
     plt.savefig(filename)
     print(f"📊 Plot saved to {filename}")
 
 if __name__ == "__main__":
-    
     run_ppo_test()
-    

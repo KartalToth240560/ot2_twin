@@ -130,7 +130,6 @@ if __name__ == "__main__":
         print("[WARN] No roots detected. Exiting.")
         exit()
 
-    # --- PHASE 2.5: VISUALIZATION (ONCE) ---
     
 
 #[Image of Cartesian coordinate system]
