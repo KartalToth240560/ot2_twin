@@ -66,7 +66,7 @@ if __name__ == "__main__":
     
     sim = Simulation(num_agents=1, render=True)
     image_path = sim.get_plate_image()
-    
+    time.sleep(3)
     
     print(f"\n[INFO] Processing image: {image_path}")
     
